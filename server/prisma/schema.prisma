@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String         @unique
+  email        String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  lastLogin    DateTime?
+  sources      IncomeSource[]
+  categories   Category[]
+  transactions Transaction[]
+}
+
+model IncomeSource {
+  id             Int           @id @default(autoincrement())
+  userId         Int
+  sourceName     String
+  sourceType     String        @default("BANK") // BANK, CASH, OTHER
+  initialBalance Float         @default(0)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+
+  @@index([userId])
+}
+
+model Category {
+  id               Int           @id @default(autoincrement())
+  userId           Int?
+  parentCategoryId Int?
+  categoryName     String
+  categoryType     String        // INCOME, EXPENSE
+  isCustom         Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  user             User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentCategory   Category?     @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  subCategories    Category[]    @relation("CategoryHierarchy")
+  transactions     Transaction[]
+
+  @@index([userId])
+  @@index([categoryType])
+}
+
+model Transaction {
+  id              Int          @id @default(autoincrement())
+  userId          Int
+  transactionDate DateTime
+  transactionType String       // INCOME, EXPENSE
+  amount          Float
+  description     String       @default("")
+  categoryId      Int
+  sourceId        Int
+  createdAt       DateTime     @default(now())
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        Category     @relation(fields: [categoryId], references: [id])
+  source          IncomeSource @relation(fields: [sourceId], references: [id])
+
+  @@index([userId])
+  @@index([transactionDate])
+  @@index([transactionType])
+  @@index([categoryId])
+}

@@ -1,80 +1,51 @@
 # Moyo ExpenseTracker
 
-## Project Description
-Moyo ExpenseTracker is a web-based application designed to help small business owners accurately track their income sources and expenses. The primary goal is to provide a clear, real-time financial overview, allowing users to understand where their money is being allocated and maintain a clear picture of their remaining funds.
+Expense tracking application for small business owners. Track income, expenses, manage categories, and generate reports.
 
-## Features
-- User authentication with secure login/logout
-- Income management: Add, view, edit, and delete income entries
-- Expense tracking with categorization
-- Custom category management with subcategories
-- Comprehensive reporting: Monthly summaries, category breakdowns, trend analysis
-- CSV export for reports
-- Responsive web interface
+## Tech Stack
 
-## Technology Stack
-- **Frontend**: Next.js, TypeScript, Tailwind CSS, Recharts
-- **Backend**: NestJS, Node.js, PostgreSQL, Prisma
-- **Authentication**: JWT with bcrypt
-- **Deployment**: Docker
+- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Recharts
+- **Backend:** Express.js, TypeScript, Prisma ORM
+- **Database:** SQLite (development) / PostgreSQL (production)
+- **Auth:** JWT with bcrypt
 
-## Project Structure
-```
-MoyoExpenseTracker/
-├── client/              # Frontend Application (Next.js)
-├── server/              # Backend API (NestJS)
-├── docs/                # Documentation
-├── .gitignore
-├── package.json         # Monorepo root
-└── README.md
-```
-
-## Setup Instructions
+## Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- PostgreSQL
-- Docker (optional, for containerized deployment)
+- Node.js 18+
+- npm 9+
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd moyo-expensetracker
-   ```
+```bash
+# Install all dependencies
+npm install
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Set up database
+cd server
+npx prisma migrate dev
+npx prisma db seed
+cd ..
 
-3. Set up the database:
-   - Create a PostgreSQL database
-   - Update server/.env with database connection details
+# Start development servers
+npm run dev
+```
 
-4. Run database migrations:
-   ```bash
-   cd server
-   npx prisma migrate dev
-   ```
+The client runs on `http://localhost:3000` and the server on `http://localhost:5000`.
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+## Project Structure
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:3001
-
-## Development
-- `npm run dev`: Start both client and server in development mode
-- `npm run build`: Build both client and server
-- `npm run lint`: Lint both client and server
-
-## Contributing
-Please read the documentation in `docs/` for detailed requirements and guidelines.
-
-## License
-MIT
+```
+├── client/          # Next.js frontend
+│   └── src/
+│       ├── app/     # App Router pages
+│       ├── components/
+│       ├── context/
+│       └── lib/
+├── server/          # Express backend
+│   └── src/
+│       ├── routes/
+│       ├── middleware/
+│       └── index.ts
+└── package.json     # Monorepo root
+```
