@@ -72,7 +72,7 @@ router.put('/:id', validate(updateCategorySchema), async (req: AuthRequest, res)
   try {
     const category = await prisma.category.findFirst({
       where: {
-        id: parseInt(req.params.id),
+        id: parseInt(req.params.id as string),
         OR: [{ userId: req.userId! }, { userId: null, isCustom: false }],
       },
     });
@@ -103,7 +103,7 @@ router.put('/:id', validate(updateCategorySchema), async (req: AuthRequest, res)
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
     const category = await prisma.category.findFirst({
-      where: { id: parseInt(req.params.id), userId: req.userId! },
+      where: { id: parseInt(req.params.id as string), userId: req.userId! },
     });
 
     if (!category) {

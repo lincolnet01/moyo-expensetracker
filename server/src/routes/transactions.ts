@@ -103,7 +103,7 @@ router.post('/', validate(createTransactionSchema), async (req: AuthRequest, res
 router.put('/:id', validate(updateTransactionSchema), async (req: AuthRequest, res) => {
   try {
     const transaction = await prisma.transaction.findFirst({
-      where: { id: parseInt(req.params.id), userId: req.userId! },
+      where: { id: parseInt(req.params.id as string), userId: req.userId! },
     });
 
     if (!transaction) {
@@ -131,7 +131,7 @@ router.put('/:id', validate(updateTransactionSchema), async (req: AuthRequest, r
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
     const transaction = await prisma.transaction.findFirst({
-      where: { id: parseInt(req.params.id), userId: req.userId! },
+      where: { id: parseInt(req.params.id as string), userId: req.userId! },
     });
 
     if (!transaction) {

@@ -13,8 +13,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('trust proxy', 1);
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
 }));
 app.use(express.json());
@@ -30,7 +32,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
 

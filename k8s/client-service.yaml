@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+  namespace: expensetracker
+spec:
+  selector:
+    app: client
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
