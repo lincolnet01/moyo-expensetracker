@@ -18,6 +18,7 @@ RUN cd server && npx tsc
 
 # Stage 3: Production image
 FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl
 WORKDIR /app/server
 
 ENV NODE_ENV=production

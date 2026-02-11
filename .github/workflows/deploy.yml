@@ -69,9 +69,10 @@ jobs:
 
       - name: Create secrets
         run: |
+          ENCODED_PW=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${{ secrets.DB_PASSWORD }}', safe=''))")
           kubectl create secret generic app-secrets \
             --namespace=expensetracker \
-            --from-literal=DATABASE_URL="postgresql://expensetracker:${{ secrets.DB_PASSWORD }}@postgres:5432/expensetracker" \
+            --from-literal=DATABASE_URL="postgresql://expensetracker:${ENCODED_PW}@postgres:5432/expensetracker" \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.DB_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
