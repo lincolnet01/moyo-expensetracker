@@ -6,7 +6,8 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - http:
+    - host: et.moyocorps.com
+      http:
         paths:
           - path: /
             pathType: Prefix
