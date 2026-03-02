@@ -51,58 +51,40 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    runs-on: ubuntu-latest
+    name: Update GitOps Repo
     needs: build-and-push
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout GitOps repo
         uses: actions/checkout@v4
+        with:
+          repository: lincolnet01/claude-devops
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
 
-      - name: Configure kubectl
+      - name: Update image tags
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          sed -i "s|image: lincolndel/expensetracker-server:.*|image: lincolndel/expensetracker-server:${{ github.sha }}|" apps/expensetracker/server-deployment.yaml
+          sed -i "s|image: lincolndel/expensetracker-client:.*|image: lincolndel/expensetracker-client:${{ github.sha }}|" apps/expensetracker/client-deployment.yaml
+          echo "Updated image tags to ${{ github.sha }}"
+          grep "image:" apps/expensetracker/server-deployment.yaml apps/expensetracker/client-deployment.yaml
 
-      - name: Apply namespace and configmap
+      - name: Commit and push
         run: |
-          kubectl apply -f k8s/namespace.yaml
-          kubectl apply -f k8s/configmap.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/expensetracker/
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "deploy(expensetracker): update images to ${{ github.sha }}"
+          git push
 
-      - name: Create secrets
+      - name: Deployment summary
         run: |
-          ENCODED_PW=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${{ secrets.DB_PASSWORD }}', safe=''))")
-          kubectl create secret generic app-secrets \
-            --namespace=expensetracker \
-            --from-literal=DATABASE_URL="postgresql://expensetracker:${ENCODED_PW}@postgres:5432/expensetracker" \
-            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-            --from-literal=POSTGRES_PASSWORD="${{ secrets.DB_PASSWORD }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Deploy PostgreSQL
-        run: |
-          kubectl apply -f k8s/postgres-pvc.yaml
-          kubectl apply -f k8s/postgres-deployment.yaml
-          kubectl apply -f k8s/postgres-service.yaml
-          kubectl rollout status deployment/postgres -n expensetracker --timeout=120s
-
-      - name: Run migrations
-        run: |
-          # Delete previous job if exists
-          kubectl delete job prisma-migrate -n expensetracker --ignore-not-found
-          # Set the image and apply
-          sed "s|DOCKER_IMAGE_SERVER|${{ env.SERVER_IMAGE }}:${{ github.sha }}|g" k8s/migration-job.yaml | kubectl apply -f -
-          kubectl wait --for=condition=complete job/prisma-migrate -n expensetracker --timeout=120s
-
-      - name: Deploy server
-        run: |
-          sed "s|DOCKER_IMAGE_SERVER|${{ env.SERVER_IMAGE }}:${{ github.sha }}|g" k8s/server-deployment.yaml | kubectl apply -f -
-          kubectl apply -f k8s/server-service.yaml
-          kubectl rollout status deployment/server -n expensetracker --timeout=120s
-
-      - name: Deploy client
-        run: |
-          sed "s|DOCKER_IMAGE_CLIENT|${{ env.CLIENT_IMAGE }}:${{ github.sha }}|g" k8s/client-deployment.yaml | kubectl apply -f -
-          kubectl apply -f k8s/client-service.yaml
-          kubectl rollout status deployment/client -n expensetracker --timeout=120s
-
-      - name: Apply ingress
-        run: kubectl apply -f k8s/ingress.yaml
+          echo "============================================"
+          echo "  EXPENSE TRACKER - GITOPS UPDATE"
+          echo "============================================"
+          echo ""
+          echo "  Server: ${{ env.SERVER_IMAGE }}:${{ github.sha }}"
+          echo "  Client: ${{ env.CLIENT_IMAGE }}:${{ github.sha }}"
+          echo "  GitOps repo updated - ArgoCD will sync automatically"
+          echo ""
+          echo "============================================"
